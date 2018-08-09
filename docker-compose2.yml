@@ -1,0 +1,35 @@
+version: '2'
+
+services:
+    tomcat:
+             image: fear2292/myapp:0.2
+             ports:
+               - "8080:8080"
+             container_name : servertom
+             networks:
+               - python-test
+    oracle:
+             image: fear2292/myoracle:0.2
+             volumes:
+               - /home/vova/my-app/oradata:/u01/app/oracle
+             ports:
+               - "1521:1521"
+             container_name : orcldb 
+             privileged : true
+             networks:
+               - python-test
+    proxy:
+             image: proxy:0.1
+             ports:
+               - "80:80"
+             container_name : nginxserv
+             environment:
+               - NGINX_HOST=nginxserv
+               - NGINX_PROXY=http://servertom:8080/JSF_JDBCIntegration-1.0-SNAPSHOT/
+             networks:
+               - python-test
+
+networks:
+ python-test:
+  external:
+    name: python-test
