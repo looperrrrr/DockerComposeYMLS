@@ -1,0 +1,70 @@
+version: '2'
+
+services:
+    tomcat:
+             image: fear2292/myapp:0.2
+             ports:
+               - "8080:8080"
+             container_name : servertom
+             networks:
+               - python-test
+    oracle:
+             image: fear2292/myoracle:0.2
+             volumes:
+               - /home/vova/my-app/oradata:/u01/app/oracle
+             ports:
+               - "1521:1521"
+             container_name : orcldb 
+             privileged : true
+             networks:
+               - python-test
+    proxy:
+             image: fear2292/proxy:0.1
+             ports:
+               - "80:80"
+             container_name : nginxserv
+             environment:
+               - NGINX_HOST=nginxserv
+               - NGINX_PROXY=http://servertom:8080/JSF_JDBCIntegration-1.0-SNAPSHOT/
+             networks:
+               - python-test
+    logstash:
+             image: logstash
+             volumes:
+               - ./logstash.conf:/etc/logstash.conf
+             environment:
+               LOGSPOUT: ignore
+             container_name : logstashh
+             networks:
+               - python-test
+             command: -f /etc/logstash.conf
+    logspout:
+             image: amouat/logspout-logstash
+             volumes:
+               - /var/run/docker.sock:/tmp/docker.sock
+             ports:
+               - "8000:80"
+             container_name : logsout
+             networks:
+               - python-test
+             command: logstash://logstashh:5000
+    elasticsearch:
+             image: elasticsearch:5.0.2
+             container_name : elasticsearch
+             networks:
+               - python-test
+             environment:
+               LOGSPOUT: ignore
+    kibana:
+             image: kibana:5.0
+             environment:
+               LOGSPOUT: ignore
+               ELASTICSEARCH_URL: http://elasticsearch:9200
+             ports:
+               - "5601:5601"
+             networks:
+               - python-test
+networks:
+ python-test:
+  external:
+    name: python-test
