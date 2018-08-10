@@ -19,7 +19,7 @@ services:
              networks:
                - python-test
     proxy:
-             image: proxy:0.1
+             image: fear2292/proxy:0.1
              ports:
                - "80:80"
              container_name : nginxserv
